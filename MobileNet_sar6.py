@@ -23,9 +23,9 @@ class mobn_sar6():
                         ])
         self.mobn = tfk.application.mobilenet(include_top=False, weights=None, alpha=alpha, depth_multiplier=depth_multiplier, input_shape=(32,32,4))
         self.fcop = tfk.Sequential([
-                        tfk.layers.Flatten()
-                        tfk.layers.Dense(256, activation='relu')
-                        tfk.layers.Dropout(0.6)
+                        tfk.layers.Flatten(),
+                        tfk.layers.Dense(256, activation='relu'),
+                        tfk.layers.Dropout(0.6),
                         tfk.layers.Dense(6, activation='softmax')
                         ])
 
