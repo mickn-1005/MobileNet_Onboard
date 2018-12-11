@@ -21,7 +21,7 @@ class mobn_sar6():
         self.prep = tfk.Sequential([
                         tfk.layers.ZeroPadding2D(padding=2, dataformat='channels_last')
                         ])
-        self.mobn = tfk.application.mobilenet(include_top=False, weights=None, alpha=alpha,, depth_multiplier=depth_multiplier, input_shape=(32,32,4))
+        self.mobn = tfk.application.mobilenet(include_top=False, weights=None, alpha=alpha, depth_multiplier=depth_multiplier, input_shape=(32,32,4))
         self.fcop = tfk.Sequential([
                         tfk.layers.Flatten()
                         tfk.layers.Dense(256, activation='relu')
