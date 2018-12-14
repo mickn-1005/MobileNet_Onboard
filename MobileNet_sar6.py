@@ -20,11 +20,11 @@ class mobn_sar6(tfk.Model):
     def __init__(self, alpha=0.5, depth_multiplier=1):
         super(mobn_sar6, self).__init__(name='mobn_sar6')
 
-        self.mobn = tfk.applications.mobilenet.MobileNet(include_top=False,
-                                                         weights=None,
-                                                         alpha=alpha,
-                                                         depth_multiplier=depth_multiplier,
-                                                         input_shape=(32,32,4))
+        self.mobn = tfk.applications.MobileNet(include_top=False,
+                                                 weights=None,
+                                                 alpha=alpha,
+                                                 depth_multiplier=depth_multiplier,
+                                                 input_shape=(32,32,4))
 
     def build(self):
         dsimg = tfk.layers.Input(shape=(28,28,4))
@@ -34,7 +34,7 @@ class mobn_sar6(tfk.Model):
         x = tfk.layers.Dense(256, activation='relu')(x)
         x = tfk.layers.Dropout(0.6)(x)
         x = tfk.layers.Dense(6, activation='softmax')(x)
-        model = tfk.Model(inputs=dsimg, outputs=x)
+        self.model = tfk.Model(inputs=dsimg, outputs=x)
         return model
 
 
