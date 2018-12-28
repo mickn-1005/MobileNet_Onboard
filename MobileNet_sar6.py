@@ -12,14 +12,31 @@ trainデータを呼ばずにtestデータをCVして評価．
 import numpy as np
 import tensorflow as tf
 from scipy.io import loadmat
-
+import os
+import sys
 tfk = tf.keras      # TensorFlow Keras API
+
+def IF_filename_toDrive(filename):
+    # Colabでマウントされているドライブとローカル環境下での実行の差分を吸収する関数
+    if sys.platform=='linux':   # google colabでの実行時
+        filename = 'drive/My Drive/tekitou/' + filename
+        file_path = os.path.dirname(filename)
+    else:                       # macOS, Windows（GitHubのディレクトリ構造上で実行を行える時）
+        pass
+    return filename
+
+def savepath_creation(filename):
+    file_path = os.path.dirname(filename)
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    return filename
 
 class mobn_sar6(tfk.Model):
     """docstring for mobn_sar6."""
     def __init__(self, alpha=0.5, depth_multiplier=1):
         super(mobn_sar6, self).__init__(name='mobn_sar6')
 
+        self.widmul = depth_multiplier
         self.mobn = tfk.applications.MobileNet(include_top=False,
                                                  weights=None,
                                                  alpha=alpha,
@@ -37,6 +54,12 @@ class mobn_sar6(tfk.Model):
         self.model = tfk.Model(inputs=dsimg, outputs=x)
         return model
 
+    def save_mobn(self):
+        # width_multiplierごとにモデルを保存
+        self.model.save_weights(savepath_creation('__models/mobn_onboard{}.h5'.format(self.widmul)))
+
+    def load_mobn(self):
+        self.model.load_weights('__models/mobn_onboard{}.h5'.format(self.widmul))
 
 if __name__ == '__main__':
     sar6 = loadmat("drive/My Drive/MLSAT/sat-6-full.mat")
@@ -45,20 +68,23 @@ if __name__ == '__main__':
     x_test = x_test.T / 255
     x_test = x_test.transpose(0,2,3,1)
     y_test = y_test.T
+    param = np.arange(0.05, 1.01, 0.05)     # width_multiplierについてパラメータを振って挙動を見てみる．
 
-    mobn = mobn_sar6()
-    model = mobn.build()
-    model.compile(loss='categorical_crossentropy',
-                  optimizer=tf.train.AdamOptimizer(),
-                  metrics=['accuracy']
-                  )
-    model.summary()
+    for widmul in param:
+        mobn = mobn_sar6(alpha=widmul)
+        model = mobn.build()
+        model.compile(loss='categorical_crossentropy',
+                    optimizer=tf.train.AdamOptimizer(),
+                    metrics=['accuracy']
+                    )
+        model.summary()
 
-    early_stopping = tfk.callbacks.EarlyStopping(patience=5)
-    model.fit(x_test, y_test,
-                validation_split=0.2,
-                batch_size=128,
-                epochs=100,
-                callbacks=[early_stopping],
-                verbose=1
-                )
+        early_stopping = tfk.callbacks.EarlyStopping(patience=5)
+        model.fit(x_test, y_test,
+                    validation_split=0.2,
+                    batch_size=128,
+                    epochs=100,
+                    callbacks=[early_stopping],
+                    verbose=1
+                    )
+        model.save_mobn()
