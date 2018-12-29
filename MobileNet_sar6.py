@@ -52,7 +52,7 @@ class mobn_sar6(tfk.Model):
         x = tfk.layers.Dropout(0.6)(x)
         x = tfk.layers.Dense(6, activation='softmax')(x)
         self.model = tfk.Model(inputs=dsimg, outputs=x)
-        return model
+        return self.model
 
     def save_mobn(self):
         # width_multiplierごとにモデルを保存
