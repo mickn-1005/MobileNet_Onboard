@@ -54,6 +54,20 @@ class mobn_sar6(tfk.Model):
         self.model = tfk.Model(inputs=dsimg, outputs=x)
         return self.model
 
+    def learn(self, x_test, y_test):
+        self.model.compile(loss='categorical_crossentropy',
+                    optimizer=tf.train.AdamOptimizer(),
+                    metrics=['accuracy']
+                    )
+        early_stopping = tfk.callbacks.EarlyStopping(patience=5)
+        self.model.fit(x_test, y_test,
+                    validation_split=0.2,
+                    batch_size=128,
+                    epochs=100,
+                    callbacks=[early_stopping],
+                    verbose=1
+                    )
+
     def save_mobn(self):
         # width_multiplierごとにモデルを保存
         self.model.save_weights(savepath_creation('__models/mobn_onboard{}.h5'.format(self.widmul)))
@@ -73,18 +87,5 @@ if __name__ == '__main__':
     for widmul in param:
         mobn = mobn_sar6(alpha=widmul)
         model = mobn.build()
-        model.compile(loss='categorical_crossentropy',
-                    optimizer=tf.train.AdamOptimizer(),
-                    metrics=['accuracy']
-                    )
-        model.summary()
-
-        early_stopping = tfk.callbacks.EarlyStopping(patience=5)
-        model.fit(x_test, y_test,
-                    validation_split=0.2,
-                    batch_size=128,
-                    epochs=100,
-                    callbacks=[early_stopping],
-                    verbose=1
-                    )
-        model.save_mobn()
+        mobn.learn(x_test, y_test)
+        mobn.save_mobn()
